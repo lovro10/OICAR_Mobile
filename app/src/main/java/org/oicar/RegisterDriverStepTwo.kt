@@ -104,19 +104,8 @@ class RegisterDriverStepTwo : AppCompatActivity() {
                 receivedRegisterStepOneData.put("username", username)
                 receivedRegisterStepOneData.put("password", password)
 
-                val registerRequest = RegisterRequest(
-                    username = "${receivedRegisterStepOneData["username"]}",
-                    password = "${receivedRegisterStepOneData["password"]}",
-                    ime = "${receivedRegisterStepOneData["ime"]}",
-                    prezime = "${receivedRegisterStepOneData["prezime"]}",
-                    email = "${receivedRegisterStepOneData["email"]}",
-                    telefon = "${receivedRegisterStepOneData["telefon"]}",
-                    datumrodjenja = "${receivedRegisterStepOneData["datumrodjenja"]}"
-
-                )
-
-                ApiClient.retrofit.registerUser(Gson().toJson(receivedRegisterStepOneData)).enqueue(object : Callback<ResponseBody> {
-                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                ApiClient.retrofit.registerUser(Gson().toJson(receivedRegisterStepOneData)).enqueue(object : Callback<String> {
+                    override fun onResponse(call: Call<String>, response: Response<String>) {
                         if (response.isSuccessful) {
 
                             println("Success")
@@ -129,7 +118,7 @@ class RegisterDriverStepTwo : AppCompatActivity() {
                         }
                     }
 
-                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                    override fun onFailure(call: Call<String>, t: Throwable) {
                         Log.e("API", "Network error: ${t.message}")
                     }
                 })
@@ -168,7 +157,7 @@ class RegisterDriverStepTwo : AppCompatActivity() {
 
                 val registerStepTwoJson = Gson().toJson(receivedRegisterStepOneData)
 
-                TempDataHolder.jsonForRegistrationData = registerStepTwoImagesJson
+                TempDataHolder.jsonForHttpRequest = registerStepTwoImagesJson
 
                 val intent = Intent(this, RegistrationDriverAndPassengerFinal::class.java)
                 intent.putExtra("receivedRegisterStepOneData", registerStepTwoJson)

@@ -1,5 +1,5 @@
 package org.oicar.models
 
 object TempDataHolder {
-    var jsonForRegistrationData: String? = null
+    var jsonForHttpRequest: String? = null
 }
