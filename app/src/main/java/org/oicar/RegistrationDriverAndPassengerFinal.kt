@@ -30,6 +30,7 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import okhttp3.ResponseBody
 import org.oicar.models.ImageDocument
+import org.oicar.models.KorisnikImage
 import org.oicar.models.RegisterRequest
 import org.oicar.models.TempDataHolder
 import org.oicar.services.ApiClient
@@ -50,10 +51,12 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
     private lateinit var previewView: PreviewView
     private lateinit var imageCapture: ImageCapture
     private lateinit var cameraProvider: ProcessCameraProvider
-    private lateinit var photoUri: Uri
 
     private val cameraPermission = android.Manifest.permission.CAMERA
     private val requestCode = 1001
+
+    private lateinit var registeredUserId : String
+    private lateinit var createdImages : MutableList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,11 +69,13 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
         }
 
         val receivedRegisterStepTwoJson = intent.getStringExtra("receivedRegisterStepOneData")
-        val registerStepTwoImagesJson = TempDataHolder.jsonForRegistrationData
+        val registerStepTwoImagesJson = TempDataHolder.jsonForHttpRequest
         val typeReceivedRegisterStepTwoJson = object : TypeToken<MutableMap<String, Any>>() {}.type
         val typeRegisterStepTwoImagesJson = object : TypeToken<MutableList<ImageDocument>>() {}.type
         receivedRegisterStepTwoData = Gson().fromJson<MutableMap<String, String>>(receivedRegisterStepTwoJson, typeReceivedRegisterStepTwoJson)
         receivedRegisterStepTwoImages = Gson().fromJson<MutableList<ImageDocument>>(registerStepTwoImagesJson, typeRegisterStepTwoImagesJson)
+
+        createdImages = mutableListOf()
 
         previewView = findViewById(R.id.previewView)
         val captureButton = findViewById<Button>(R.id.captureButton)
@@ -89,11 +94,12 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
 
         completeRegistrationButton.setOnClickListener {
 
-            ApiClient.retrofit.registerUser(Gson().toJson(receivedRegisterStepTwoData)).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            ApiClient.retrofit.registerUser(Gson().toJson(receivedRegisterStepTwoData)).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
                     if (response.isSuccessful) {
 
                         println("Success")
+                        registeredUserId = response.body()!!
 
 
                     } else {
@@ -103,18 +109,78 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                override fun onFailure(call: Call<String>, t: Throwable) {
                     Log.e("API", "Network error: ${t.message}")
                 }
             })
 
-            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[0]).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[0]).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
                     if (response.isSuccessful) {
 
-
+                        println(response.body())
+                        response.body()?.let {
+                            createdImages.add(it)
+                        }
                         println("Success")
-                        TempDataHolder.jsonForRegistrationData = null
+                        TempDataHolder.jsonForHttpRequest = null
+
+                        if (createdImages.count() == 5) {
+
+                            callCreateKorisnikImage()
+                        }
+
+                    } else {
+                        println("FAIL")
+                        println(response)
+                        println(receivedRegisterStepTwoImages)
+                    }
+                }
+
+                override fun onFailure(call: Call<String>, t: Throwable) {
+                    Log.e("API", "Network error: ${t.message}")
+                }
+            })
+            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[1]).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
+                    if (response.isSuccessful) {
+
+                        response.body()?.let {
+                            createdImages.add(it)
+                        }
+                        println("Success")
+                        TempDataHolder.jsonForHttpRequest = null
+
+                        if (createdImages.count() == 5) {
+
+                            callCreateKorisnikImage()
+                        }
+
+                    } else {
+                        println("FAIL")
+                        println(response)
+                        println(receivedRegisterStepTwoImages)
+                    }
+                }
+
+                override fun onFailure(call: Call<String>, t: Throwable) {
+                    Log.e("API", "Network error: ${t.message}")
+                }
+            })
+            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[2]).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
+                    if (response.isSuccessful) {
+
+                        response.body()?.let {
+                            createdImages.add(it)
+                        }
+                        println("Success")
+                        TempDataHolder.jsonForHttpRequest = null
+
+                        if (createdImages.count() == 5) {
+
+                            callCreateKorisnikImage()
+                        }
 
 
                     } else {
@@ -124,17 +190,24 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                override fun onFailure(call: Call<String>, t: Throwable) {
                     Log.e("API", "Network error: ${t.message}")
                 }
             })
-            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[1]).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[3]).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
                     if (response.isSuccessful) {
 
-
+                        response.body()?.let {
+                            createdImages.add(it)
+                        }
                         println("Success")
-                        TempDataHolder.jsonForRegistrationData = null
+                        TempDataHolder.jsonForHttpRequest = null
+
+                        if (createdImages.count() == 5) {
+
+                            callCreateKorisnikImage()
+                        }
 
 
                     } else {
@@ -144,17 +217,24 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                override fun onFailure(call: Call<String>, t: Throwable) {
                     Log.e("API", "Network error: ${t.message}")
                 }
             })
-            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[2]).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[4]).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
                     if (response.isSuccessful) {
 
-
+                        response.body()?.let {
+                            createdImages.add(it)
+                        }
                         println("Success")
-                        TempDataHolder.jsonForRegistrationData = null
+                        TempDataHolder.jsonForHttpRequest = null
+
+                        if (createdImages.count() == 5) {
+
+                            callCreateKorisnikImage()
+                        }
 
 
                     } else {
@@ -164,43 +244,32 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                override fun onFailure(call: Call<String>, t: Throwable) {
                     Log.e("API", "Network error: ${t.message}")
                 }
             })
-            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[3]).enqueue(object : Callback<ResponseBody> {
+
+
+        }
+    }
+
+    private fun callCreateKorisnikImage() {
+
+        for (item in createdImages) {
+
+            var korisnikImage = KorisnikImage(registeredUserId, item)
+
+            ApiClient.retrofit.createKorisnikImage(korisnikImage).enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
                     if (response.isSuccessful) {
 
 
                         println("Success")
-                        TempDataHolder.jsonForRegistrationData = null
 
 
                     } else {
                         println("FAIL")
                         println(response)
-                        println(receivedRegisterStepTwoImages)
-                    }
-                }
-
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
-                    Log.e("API", "Network error: ${t.message}")
-                }
-            })
-            ApiClient.retrofit.uploadImage(receivedRegisterStepTwoImages[4]).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
-                    if (response.isSuccessful) {
-
-
-                        println("Success")
-                        TempDataHolder.jsonForRegistrationData = null
-
-
-                    } else {
-                        println("FAIL")
-                        println(response)
-                        println(receivedRegisterStepTwoImages)
                     }
                 }
 

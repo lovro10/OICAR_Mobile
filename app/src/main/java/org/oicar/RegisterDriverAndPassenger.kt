@@ -41,6 +41,7 @@ class RegisterDriverAndPassenger : AppCompatActivity() {
             val day = calendar.get(Calendar.DAY_OF_MONTH)
 
             var monthFormatted : String
+            var dayFormatted : String
 
             val datePickerDialog = DatePickerDialog(
                 this,
@@ -51,7 +52,13 @@ class RegisterDriverAndPassenger : AppCompatActivity() {
                     else {
                         monthFormatted = (selectedMonth + 1).toString()
                     }
-                    val selectedDate = "$selectedYear-${monthFormatted}-$selectedDay"
+                    if(selectedDay + 1 < 10) {
+                        dayFormatted = "0${(selectedDay).toString()}"
+                    }
+                    else {
+                        dayFormatted = (selectedDay).toString()
+                    }
+                    val selectedDate = "$selectedYear-${monthFormatted}-${dayFormatted}"
                     selectedDateTextView.text = selectedDate
                 }, year, month, day
             )
