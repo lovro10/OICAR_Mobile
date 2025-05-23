@@ -17,6 +17,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.gson.Gson
 import okhttp3.ResponseBody
+import org.json.JSONObject
 import org.oicar.models.ImageDocument
 import org.oicar.models.KorisnikImage
 import org.oicar.models.TempDataHolder
@@ -80,13 +81,18 @@ class AddVehicleScreen : AppCompatActivity() {
 
             val vehicleFullRegistration = "${vehicleRegCountryCodeEditText}${vehicleRegNumberEditText}"
 
+            val jwt = getJwtToken(this)
+
+            val payload = decodeJwtPayload(jwt!!)
+
             var vehicleData = Vehicle(
 
+                1,
                 vehicleNameEditText,
                 vehicleTypeEditText,
                 vehicleModelEditText,
                 vehicleFullRegistration,
-                "55"
+                payload.getString("sub").toString()
             )
 
             ApiClient.retrofit.createVehicle(vehicleData).enqueue(object : Callback<ResponseBody> {
@@ -237,5 +243,21 @@ class AddVehicleScreen : AppCompatActivity() {
             e.printStackTrace()
             null
         }
+    }
+
+    fun getJwtToken(context: Context): String? {
+        val securePrefs = getSecurePrefs(context)
+        return securePrefs.getString("jwt_token", null)
+    }
+
+    fun decodeJwtPayload(jwt: String): JSONObject {
+        val parts = jwt.split(".")
+        if (parts.size != 3) throw IllegalArgumentException("Invalid JWT format")
+
+        val payloadEncoded = parts[1]
+        val decodedBytes = Base64.decode(payloadEncoded, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        val decodedPayload = String(decodedBytes, Charsets.UTF_8)
+
+        return JSONObject(decodedPayload)
     }
 }

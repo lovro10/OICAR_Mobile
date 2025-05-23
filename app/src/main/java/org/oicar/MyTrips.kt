@@ -1,12 +1,15 @@
 package org.oicar
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Typeface
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -16,6 +19,8 @@ import androidx.cardview.widget.CardView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.internal.TextScale
+import org.json.JSONObject
 import org.oicar.models.Trip
 import org.oicar.services.ApiClient
 import retrofit2.Call
@@ -23,14 +28,14 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.time.LocalDateTime
 
-class TripsScreen : AppCompatActivity() {
+class MyTrips : AppCompatActivity() {
 
     private lateinit var listOfTrips: List<Trip>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_trips)
+        setContentView(R.layout.activity_my_trips)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -38,7 +43,7 @@ class TripsScreen : AppCompatActivity() {
         }
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNavigation.selectedItemId = R.id.nav_browse
+        bottomNavigation.selectedItemId = R.id.nav_add_drive
         bottomNavigation.setOnItemSelectedListener() {
             when (it.itemId) {
                 R.id.nav_browse -> {
@@ -48,13 +53,11 @@ class TripsScreen : AppCompatActivity() {
                 }
                 R.id.nav_add_drive -> {
 
-                    val intent = Intent(this, MyTrips::class.java)
-                    startActivity(intent)
+
                 }
                 R.id.nav_messages -> {
 
-                    val intent = Intent(this, AddVehicleScreen::class.java)
-                    startActivity(intent)
+
                 }
                 R.id.nav_profile -> {
 
@@ -64,7 +67,11 @@ class TripsScreen : AppCompatActivity() {
             true
         }
 
-        ApiClient.retrofit.getAllTrips().enqueue(object : Callback<List<Trip>> {
+        val jwt = getJwtToken(this)
+
+        val payload = decodeJwtPayload(jwt!!)
+
+        ApiClient.retrofit.getAllTripsForCurrentUser(payload.getString("sub").toInt()).enqueue(object : Callback<List<Trip>> {
             override fun onResponse(call: Call<List<Trip>>, response: Response<List<Trip>>) {
                 if (response.isSuccessful) {
 
@@ -74,7 +81,7 @@ class TripsScreen : AppCompatActivity() {
                     for (trip in listOfTrips) {
 
                         val tripCard = createTripCard(trip.datumIVrijemePolaska, trip.polaziste, trip.odrediste)
-                        val containerForTripCards = findViewById<LinearLayout>(R.id.layout_trips)
+                        val containerForTripCards = findViewById<LinearLayout>(R.id.layout_my_trips)
                         containerForTripCards.addView(tripCard)
                     }
 
@@ -89,6 +96,14 @@ class TripsScreen : AppCompatActivity() {
                 Log.e("API", "Network error: ${t.message}")
             }
         })
+
+        var addTripButton : TextView = findViewById(R.id.addTripButton)
+
+        addTripButton.setOnClickListener {
+
+            val intent = Intent(this, AddTrip::class.java)
+            startActivity(intent)
+        }
     }
 
     fun createTripCard(departureTime: String, startLocation: String, endLocation: String): CardView {
@@ -282,4 +297,19 @@ class TripsScreen : AppCompatActivity() {
         return cardView
     }
 
+    fun getJwtToken(context: Context): String? {
+        val securePrefs = getSecurePrefs(context)
+        return securePrefs.getString("jwt_token", null)
+    }
+
+    fun decodeJwtPayload(jwt: String): JSONObject {
+        val parts = jwt.split(".")
+        if (parts.size != 3) throw IllegalArgumentException("Invalid JWT format")
+
+        val payloadEncoded = parts[1]
+        val decodedBytes = Base64.decode(payloadEncoded, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        val decodedPayload = String(decodedBytes, Charsets.UTF_8)
+
+        return JSONObject(decodedPayload)
+    }
 }
