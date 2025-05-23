@@ -3,6 +3,7 @@ package org.oicar.services
 import okhttp3.ResponseBody
 import org.oicar.models.ImageDocument
 import org.oicar.models.KorisnikImage
+import org.oicar.models.OglasVoznja
 import org.oicar.models.RegisterRequest
 import org.oicar.models.Trip
 import org.oicar.models.Vehicle
@@ -10,10 +11,12 @@ import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface ApiService {
     @POST("api/Korisnik/Login")
-    fun loginUser(@Body request: Map<String, String>): Call<ResponseBody>
+    fun loginUser(@Body request: Map<String, String>): Call<String>
 
     @POST("api/Korisnik/RegistracijaVozac")
     fun registerUser(@Body request: String): Call<String>
@@ -32,4 +35,13 @@ interface ApiService {
 
     @POST("api/Vozilo/KrerirajVozilo")
     fun createVehicle(@Body request: Vehicle): Call<ResponseBody>
+
+    @GET("api/Vozilo/GetVehicleByUser")
+    fun getAllVehiclesForCurrentDriver(@Query("userId") userId: Int): Call<MutableList<Vehicle>>
+
+    @POST("api/OglasVoznja/KreirajOglasVoznje")
+    fun createOglasVoznja(@Body request: OglasVoznja): Call<ResponseBody>
+
+    @GET("api/OglasVoznja/GetAllByUser")
+    fun getAllTripsForCurrentUser(@Query("userid") userid: Int): Call<List<Trip>>
 }

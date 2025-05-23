@@ -49,7 +49,7 @@ class BrowseScreen : AppCompatActivity() {
                 }
                 R.id.nav_add_drive -> {
 
-                    val intent = Intent(this, TripsScreen::class.java)
+                    val intent = Intent(this, MyTrips::class.java)
                     startActivity(intent)
                 }
                 R.id.nav_messages -> {
@@ -157,6 +157,14 @@ class BrowseScreen : AppCompatActivity() {
                 .create()
 
             dialog.show()
+        }
+
+        var browseTrips : Button = findViewById(R.id.browseTrips)
+
+        browseTrips.setOnClickListener {
+
+            val intent = Intent(this, TripsScreen::class.java)
+            startActivity(intent)
         }
     }
 }

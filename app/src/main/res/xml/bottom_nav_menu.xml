@@ -6,7 +6,7 @@
     <item
         android:id="@+id/nav_add_drive"
         android:icon="@drawable/icon_add_drive"
-        android:title="Add drive"/>
+        android:title="Add trip"/>
     <item
         android:id="@+id/nav_messages"
         android:icon="@drawable/icon_messages"

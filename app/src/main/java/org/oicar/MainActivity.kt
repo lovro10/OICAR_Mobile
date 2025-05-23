@@ -1,5 +1,6 @@
 package org.oicar
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -10,11 +11,25 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import okhttp3.ResponseBody
 import org.oicar.services.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+
+fun getSecurePrefs(context: Context): EncryptedSharedPreferences {
+    val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
+
+    return EncryptedSharedPreferences.create(
+        "secure_prefs",
+        masterKeyAlias,
+        context,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    ) as EncryptedSharedPreferences
+}
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,13 +62,16 @@ class MainActivity : AppCompatActivity() {
                 "password" to password
             )
 
-            ApiClient.retrofit.loginUser(requestBody).enqueue(object : Callback<ResponseBody> {
-                override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+            ApiClient.retrofit.loginUser(requestBody).enqueue(object : Callback<String> {
+                override fun onResponse(call: Call<String>, response: Response<String>) {
                     if (response.isSuccessful) {
 
-
+                        saveJwtToken(this@MainActivity, response.body().toString())
 
                         println("Success")
+
+                        val intent = Intent(this@MainActivity, BrowseScreen::class.java)
+                        startActivity(intent)
 
 
                     } else {
@@ -62,10 +80,16 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                override fun onFailure(call: Call<String>, t: Throwable) {
                     Log.e("API", "Network error: ${t.message}")
                 }
             })
         }
     }
+
+    fun saveJwtToken(context: Context, token: String) {
+        val securePrefs = getSecurePrefs(context)
+        securePrefs.edit().putString("jwt_token", token).apply()
+    }
 }
+
