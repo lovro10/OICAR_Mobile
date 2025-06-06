@@ -1,0 +1,456 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".TripTracking"
+    android:background="#2511D6"
+    android:layout_above="@+id/buttonsApplyBack">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TRIP DETAILS"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="30sp"
+                android:gravity="center_horizontal"
+                android:layout_marginTop="10sp"
+                android:layout_marginBottom="10sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:paddingRight="40dp"
+                android:drawableRight="@drawable/icon_location_pin"
+                android:drawableTint="@color/black"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tripDuration"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginTop="10dp"
+                android:layout_weight="1"
+                android:gravity="center"
+
+                android:text="02:15"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                android:textSize="25sp"
+                />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:layout_gravity="center"
+                android:paddingLeft="40dp"
+                android:drawableLeft="@drawable/icon_location_pin"
+                android:drawableTint="@color/black"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="@color/black"
+            android:layout_marginHorizontal="80dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/departureLocation"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="ZAGREB"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.4"
+                android:gravity="center"
+                android:background="@drawable/icon_arrow"
+                android:backgroundTint="@color/black"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/arrivalLocation"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="OSIJEK"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="#FFFFFF"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="20dp">
+
+            <TextView
+                android:id="@+id/departureTime"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="10:00"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:paddingLeft="40dp"/>
+
+            <TextView
+                android:id="@+id/DepartureDate"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1.5"
+                android:text="04.06.2025"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/arrivalTime"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:text="12:15"
+                android:gravity="center"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:paddingRight="45dp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp">
+
+            <TextView
+                android:id="@+id/tripCarName"
+                android:layout_width="0dp"
+                android:layout_marginHorizontal="30dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="center_vertical"
+                android:drawableLeft="@drawable/icon_car"
+                android:drawableTint="@color/black"
+                android:drawablePadding="15dp"
+                android:layout_marginTop="10sp"
+                android:text="BMW X2 (ZG 7654 85)"
+                android:textStyle="bold"
+                android:textSize="15dp"
+                android:textColor="@color/white"
+                android:clickable="true"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="40dp">
+
+            <TextView
+                android:id="@+id/numberOfPassengers"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="30dp"
+                android:layout_weight="1"
+                android:drawableRight="@drawable/icon_person"
+                android:drawableTint="@color/black"
+                android:gravity="center_vertical"
+                android:text="3"
+                android:textColor="@color/white"
+                android:textSize="35dp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:layout_weight="2"
+                android:layout_marginLeft="-50dp">
+
+            <TextView
+                android:id="@+id/driverName"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginTop="10sp"
+                android:text="KARLO LALJEK"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:textSize="20dp"/>
+
+                <TextView
+                    android:id="@+id/driverTelephone"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginBottom="10sp"
+                    android:text="091 155 8744"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:textSize="20dp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="25dp">
+
+            <TextView
+                android:id="@+id/tripPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="30dp"
+                android:clickable="true"
+                android:drawableEnd="@drawable/icon_euro"
+                android:drawablePadding="15dp"
+                android:drawableTint="@color/black"
+                android:gravity="center_vertical"
+                android:text="12,50"
+                android:textColor="@color/white"
+                android:textSize="25dp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/buttonsApplyBack"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="15dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="16dp">
+
+        <Button
+            android:id="@+id/btnCancelAddVehicle"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="apply"
+            android:textColor="#008000"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:backgroundTint="@color/cardview_light_background" />
+
+        <Button
+            android:id="@+id/btnAddTrip"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:text="back"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            android:backgroundTint="@color/cardview_light_background" />
+    </LinearLayout>
+
+
+
+
+<!--    &lt;!&ndash; Route: Zagreb -> Osijek &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/routeLayout"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/duration"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:layout_marginTop="16dp">-->
+
+<!--        <TextView-->
+<!--            android:text="ZAGREB"-->
+<!--            android:textColor="#FFFFFF"-->
+<!--            android:textStyle="bold"-->
+<!--            android:layout_marginEnd="8dp" />-->
+
+<!--        <TextView-->
+<!--            android:text="→"-->
+<!--            android:textColor="#FFFFFF"-->
+<!--            android:textSize="18sp"-->
+<!--            android:layout_marginEnd="8dp" />-->
+
+<!--        <TextView-->
+<!--            android:text="OSIJEK"-->
+<!--            android:textColor="#FFFFFF"-->
+<!--            android:textStyle="bold" />-->
+<!--    </LinearLayout>-->
+
+<!--    &lt;!&ndash; Time and Date Info &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/timeInfo"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_marginTop="8dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/routeLayout"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent">-->
+
+<!--        <TextView android:text="10:00" android:textColor="#FFFFFF" android:layout_marginEnd="12dp"/>-->
+<!--        <TextView android:text="04.06.2025." android:textColor="#FFFFFF" android:layout_marginEnd="12dp"/>-->
+<!--        <TextView android:text="12:15" android:textColor="#FFFFFF"/>-->
+<!--    </LinearLayout>-->
+
+<!--    &lt;!&ndash; Car Info &ndash;&gt;-->
+<!--    <TextView-->
+<!--        android:id="@+id/carInfo"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="BMW X2 (ZG 7654 85)"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:drawableLeft="@android:drawable/ic_menu_directions"-->
+<!--        android:layout_marginTop="16dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/timeInfo"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent" />-->
+
+<!--    &lt;!&ndash; Number of Seats &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/seats"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/carInfo"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent">-->
+
+<!--        <TextView-->
+<!--            android:text="4"-->
+<!--            android:textColor="#FFFFFF"-->
+<!--            android:textSize="20sp"-->
+<!--            android:layout_marginEnd="8dp"/>-->
+<!--        <ImageView-->
+<!--            android:src="@android:drawable/ic_menu_myplaces"-->
+<!--            android:tint="#FFFFFF"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content" />-->
+<!--    </LinearLayout>-->
+
+<!--    &lt;!&ndash; Driver Info &ndash;&gt;-->
+<!--    <TextView-->
+<!--        android:id="@+id/driverInfo"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="KARLO LALJEK\n+385 091 258 9874"-->
+<!--        android:textColor="#FFFFFF"-->
+<!--        android:textStyle="bold"-->
+<!--        android:gravity="center"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/seats"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent" />-->
+
+<!--    &lt;!&ndash; Price &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/price"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/driverInfo"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent">-->
+
+<!--        <TextView-->
+<!--            android:text="12,5"-->
+<!--            android:textColor="#FFFFFF"-->
+<!--            android:textStyle="bold"-->
+<!--            android:textSize="18sp"-->
+<!--            android:layout_marginEnd="8dp"/>-->
+
+<!--        <ImageView-->
+<!--            android:src="@android:drawable/ic_menu_myplaces"-->
+<!--            android:tint="#FFFFFF"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content" />-->
+<!--    </LinearLayout>-->
+
+<!--    &lt;!&ndash; Apply Button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnApply"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="apply"-->
+<!--        android:textStyle="bold"-->
+<!--        android:textColor="#FF0000"-->
+<!--        android:background="#00FF00"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/price"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:layout_marginTop="24dp"/>-->
+
+<!--    &lt;!&ndash; Back Button &ndash;&gt;-->
+<!--    <Button-->
+<!--        android:id="@+id/btnBack"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="back"-->
+<!--        android:textStyle="bold"-->
+<!--        android:textColor="#FF0000"-->
+<!--        android:background="#DDDDDD"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/btnApply"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:layout_marginTop="8dp"/>-->
+
+</RelativeLayout>

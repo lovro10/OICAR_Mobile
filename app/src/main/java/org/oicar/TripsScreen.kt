@@ -1,7 +1,10 @@
 package org.oicar
 
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.content.res.Resources
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
@@ -11,21 +14,33 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.oicar.models.DirectionResponse
 import org.oicar.models.Trip
 import org.oicar.services.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 
 class TripsScreen : AppCompatActivity() {
 
     private lateinit var listOfTrips: List<Trip>
+
+    private lateinit var googleMapsApiKey: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +51,11 @@ class TripsScreen : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        googleMapsApiKey = applicationContext.packageManager
+            .getApplicationInfo(applicationContext.packageName, PackageManager.GET_META_DATA)
+            .metaData
+            .getString("com.google.android.geo.API_KEY").toString()
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigation.selectedItemId = R.id.nav_browse
@@ -65,6 +85,7 @@ class TripsScreen : AppCompatActivity() {
         }
 
         ApiClient.retrofit.getAllTrips().enqueue(object : Callback<List<Trip>> {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(call: Call<List<Trip>>, response: Response<List<Trip>>) {
                 if (response.isSuccessful) {
 
@@ -73,11 +94,14 @@ class TripsScreen : AppCompatActivity() {
 
                     for (trip in listOfTrips) {
 
-                        val tripCard = createTripCard(trip.datumIVrijemePolaska, trip.polaziste, trip.odrediste)
-                        val containerForTripCards = findViewById<LinearLayout>(R.id.layout_trips)
-                        containerForTripCards.addView(tripCard)
-                    }
+                        lifecycleScope.launch {
+                            runAndWait(trip)
 
+                            val tripCard = createTripCard(trip)
+                            val containerForTripCards = findViewById<LinearLayout>(R.id.layout_trips)
+                            containerForTripCards.addView(tripCard)
+                        }
+                    }
 
                 } else {
                     println("FAIL")
@@ -89,9 +113,16 @@ class TripsScreen : AppCompatActivity() {
                 Log.e("API", "Network error: ${t.message}")
             }
         })
+
     }
 
-    fun createTripCard(departureTime: String, startLocation: String, endLocation: String): CardView {
+    var cardViews: MutableList<CardView> = mutableListOf()
+
+    var approximateDuration: String = "00000"
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun createTripCard(trip: Trip): CardView {
+
         val context = this
 
         val cardView = CardView(context).apply {
@@ -104,6 +135,15 @@ class TripsScreen : AppCompatActivity() {
             radius = 50f
             cardElevation = 8f
             setContentPadding(16, 16, 16, 16)
+            isClickable = true
+            isFocusable = true
+
+            setOnClickListener {
+
+                val intent = Intent(this@TripsScreen, TripDetails::class.java)
+                intent.putExtra("trip", Gson().toJson(trip))
+                startActivity(intent)
+            }
         }
 
         val rootLayout = LinearLayout(context).apply {
@@ -140,7 +180,7 @@ class TripsScreen : AppCompatActivity() {
 
         timeColumn.addView(TextView(context).apply {
 
-            val unformattedDateTime = departureTime
+            val unformattedDateTime = trip.datumIVrijemePolaska
             val extractedDateTime = LocalDateTime.parse(unformattedDateTime)
             val formattedDateTime = extractedDateTime.toLocalTime()
 
@@ -157,7 +197,8 @@ class TripsScreen : AppCompatActivity() {
         })
 
         timeColumn.addView(TextView(context).apply {
-            text = "~04:00"
+            text = "00:00"
+            tag = "durationText"
             setTypeface(null, Typeface.ITALIC)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             layoutParams = LinearLayout.LayoutParams(
@@ -204,7 +245,7 @@ class TripsScreen : AppCompatActivity() {
         }
 
         locationColumn.addView(TextView(context).apply {
-            text = startLocation
+            text = trip.polaziste
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(
@@ -217,7 +258,7 @@ class TripsScreen : AppCompatActivity() {
         })
 
         locationColumn.addView(TextView(context).apply {
-            text = endLocation
+            text = trip.odrediste
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.BOTTOM
@@ -231,10 +272,13 @@ class TripsScreen : AppCompatActivity() {
         })
 
         val priceText = TextView(context).apply {
-            text = "29,00€"
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            text = BigDecimal(trip.cijenaPoPutniku).setScale(2, RoundingMode.HALF_UP).toString()
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.CENTER_VERTICAL
+            setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.icon_euro, 0)
+            compoundDrawablePadding = (10 * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+            compoundDrawableTintList = ContextCompat.getColorStateList(context, R.color.black)
         }
 
         leftLayout.addView(timeColumn)
@@ -250,36 +294,73 @@ class TripsScreen : AppCompatActivity() {
             setPadding(0, 8, 0, 0)
         }
 
-//        val profileImage = ImageView(context).apply {
-//            layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 40.dpToPx()).apply {
-//                marginEnd = 8.dpToPx()
-//            }
-//            scaleType = ImageView.ScaleType.CENTER_CROP
-//            setImageResource(R.drawable.profile_placeholder) // Your placeholder
-//        }
-
         val driverInfo = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
         driverInfo.addView(TextView(context).apply {
-            text = "Antonio"
+            text = "${trip.ime} ${trip.prezime} (${trip.username})"
             setTypeface(null, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         driverInfo.addView(TextView(context).apply {
-            text = "★ 4.3"
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            text = "${trip.brojPutnika}"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            gravity = Gravity.CENTER_VERTICAL
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_number_of_passengers, 0, 0, 0)
+            compoundDrawablePadding = (10 * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+            compoundDrawableTintList = ContextCompat.getColorStateList(context, R.color.black)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         })
 
-//        driverRow.addView(profileImage)
         driverRow.addView(driverInfo)
 
         rootLayout.addView(topRow)
         rootLayout.addView(driverRow)
         cardView.addView(rootLayout)
 
+        cardViews.add(cardView)
         return cardView
+    }
+
+    suspend fun runAndWait(trip: Trip) {
+
+        withContext(Dispatchers.IO) {
+            getDirectionsDetails(trip)
+        }
+    }
+
+    var ests: MutableList<String> = mutableListOf<String>()
+
+    fun getDirectionsDetails(trip: Trip) {
+
+        ApiClient.retrofitGoogle.getDirections(trip.polaziste, trip.odrediste, googleMapsApiKey).enqueue(object : Callback<DirectionResponse> {
+            override fun onResponse(call: Call<DirectionResponse>, response: Response<DirectionResponse>) {
+                if (response.isSuccessful) {
+
+                    val directions = response.body()!!
+
+                    approximateDuration = directions.routes.first().legs.first().duration.text
+
+                    ests.add(approximateDuration)
+
+                    println(approximateDuration)
+
+                } else {
+                    println("FAIL")
+                    println(response)
+                }
+            }
+
+            override fun onFailure(call: Call<DirectionResponse>, t: Throwable) {
+                Log.e("API", "Network error: ${t.message}")
+            }
+        })
     }
 
 }

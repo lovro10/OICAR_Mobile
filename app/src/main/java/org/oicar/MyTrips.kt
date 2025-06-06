@@ -2,7 +2,9 @@ package org.oicar
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Resources
 import android.graphics.Typeface
+import android.os.Build
 import android.os.Bundle
 import android.util.Base64
 import android.util.Log
@@ -14,8 +16,10 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -72,6 +76,7 @@ class MyTrips : AppCompatActivity() {
         val payload = decodeJwtPayload(jwt!!)
 
         ApiClient.retrofit.getAllTripsForCurrentUser(payload.getString("sub").toInt()).enqueue(object : Callback<List<Trip>> {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(call: Call<List<Trip>>, response: Response<List<Trip>>) {
                 if (response.isSuccessful) {
 
@@ -80,7 +85,7 @@ class MyTrips : AppCompatActivity() {
 
                     for (trip in listOfTrips) {
 
-                        val tripCard = createTripCard(trip.datumIVrijemePolaska, trip.polaziste, trip.odrediste)
+                        val tripCard = createTripCard(trip)
                         val containerForTripCards = findViewById<LinearLayout>(R.id.layout_my_trips)
                         containerForTripCards.addView(tripCard)
                     }
@@ -106,7 +111,8 @@ class MyTrips : AppCompatActivity() {
         }
     }
 
-    fun createTripCard(departureTime: String, startLocation: String, endLocation: String): CardView {
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun createTripCard(trip: Trip): CardView {
         val context = this
 
         val cardView = CardView(context).apply {
@@ -119,6 +125,13 @@ class MyTrips : AppCompatActivity() {
             radius = 50f
             cardElevation = 8f
             setContentPadding(16, 16, 16, 16)
+            isClickable = true
+            isFocusable = true
+
+            setOnClickListener {
+                println("Clicked!")
+                println(trip)
+            }
         }
 
         val rootLayout = LinearLayout(context).apply {
@@ -155,7 +168,7 @@ class MyTrips : AppCompatActivity() {
 
         timeColumn.addView(TextView(context).apply {
 
-            val unformattedDateTime = departureTime
+            val unformattedDateTime = trip.datumIVrijemePolaska
             val extractedDateTime = LocalDateTime.parse(unformattedDateTime)
             val formattedDateTime = extractedDateTime.toLocalTime()
 
@@ -219,7 +232,7 @@ class MyTrips : AppCompatActivity() {
         }
 
         locationColumn.addView(TextView(context).apply {
-            text = startLocation
+            text = trip.polaziste
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(
@@ -232,7 +245,7 @@ class MyTrips : AppCompatActivity() {
         })
 
         locationColumn.addView(TextView(context).apply {
-            text = endLocation
+            text = trip.odrediste
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.BOTTOM
@@ -246,10 +259,13 @@ class MyTrips : AppCompatActivity() {
         })
 
         val priceText = TextView(context).apply {
-            text = "29,00€"
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+            text = trip.cijenaPoPutniku.toString()
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.CENTER_VERTICAL
+            setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.icon_euro, 0)
+            compoundDrawablePadding = (10 * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+            compoundDrawableTintList = ContextCompat.getColorStateList(context, R.color.black)
         }
 
         leftLayout.addView(timeColumn)
@@ -274,17 +290,27 @@ class MyTrips : AppCompatActivity() {
 //        }
 
         val driverInfo = LinearLayout(context).apply {
-            orientation = LinearLayout.VERTICAL
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
         }
 
         driverInfo.addView(TextView(context).apply {
-            text = "Antonio"
+            text = "${trip.ime} ${trip.prezime} (${trip.username})"
             setTypeface(null, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
         })
         driverInfo.addView(TextView(context).apply {
-            text = "★ 4.3"
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+            text = "${trip.brojPutnika}"
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
+            gravity = Gravity.CENTER_VERTICAL
+            setCompoundDrawablesWithIntrinsicBounds(R.drawable.icon_number_of_passengers, 0, 0, 0)
+            compoundDrawablePadding = (10 * Resources.getSystem().displayMetrics.scaledDensity).toInt()
+            compoundDrawableTintList = ContextCompat.getColorStateList(context, R.color.black)
+            layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         })
 
 //        driverRow.addView(profileImage)
