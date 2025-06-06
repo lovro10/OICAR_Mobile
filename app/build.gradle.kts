@@ -1,6 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -18,7 +19,12 @@ android {
     }
 
     buildTypes {
+        debug {
+            isDebuggable = true
+        }
+
         release {
+            isDebuggable = false
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -34,6 +40,8 @@ android {
         jvmTarget = "11"
     }
 }
+
+val navSdkVersion by extra("6.0.0")
 
 dependencies {
 
@@ -61,7 +69,21 @@ dependencies {
 
     implementation ("androidx.security:security-crypto:1.1.0-alpha06")
 
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
+    api("com.google.android.libraries.navigation:navigation:${navSdkVersion}")
+}
+
+secrets {
+    // Optionally specify a different file name containing your secrets.
+    // The plugin defaults to "local.properties"
+    propertiesFileName = "secrets.properties"
+
+    // A properties file containing default secret values. This file can be
+    // checked in version control.
+    defaultPropertiesFileName = "local.defaults.properties"
 }

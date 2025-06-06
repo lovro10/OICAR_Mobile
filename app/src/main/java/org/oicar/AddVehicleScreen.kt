@@ -206,9 +206,13 @@ class AddVehicleScreen : AppCompatActivity() {
 
     private fun callConnectVehicleAndDriver() {
 
+        val jwt = getJwtToken(this)
+
+        val payload = decodeJwtPayload(jwt!!)
+
         for (item in createdImages) {
 
-            var korisnikImage = KorisnikImage("55", item)
+            var korisnikImage = KorisnikImage(payload.getString("sub").toString(), item)
 
             ApiClient.retrofit.createKorisnikImage(korisnikImage).enqueue(object : Callback<ResponseBody> {
                 override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {

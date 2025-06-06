@@ -1,6 +1,7 @@
 package org.oicar.services
 
 import okhttp3.ResponseBody
+import org.oicar.models.DirectionResponse
 import org.oicar.models.ImageDocument
 import org.oicar.models.KorisnikImage
 import org.oicar.models.OglasVoznja
@@ -44,4 +45,13 @@ interface ApiService {
 
     @GET("api/OglasVoznja/GetAllByUser")
     fun getAllTripsForCurrentUser(@Query("userid") userid: Int): Call<List<Trip>>
+}
+
+interface GoogleApiService {
+    @GET("directions/json")
+    fun getDirections(
+        @Query("origin") origin: String,
+        @Query("destination") destination: String,
+        @Query("key") apiKey: String
+    ): Call<DirectionResponse>
 }

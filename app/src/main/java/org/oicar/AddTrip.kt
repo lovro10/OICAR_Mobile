@@ -218,9 +218,14 @@ class AddTrip : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
             val completeDateOfDeparture : String = "${formattedDate}T${choose_time_of_departure.text.toString()}"
 
+            val jwt = getJwtToken(this)
+
+            val payload = decodeJwtPayload(jwt!!)
+
             val trip : OglasVoznja = OglasVoznja(
 
                 selectedVehicle.idvozilo,
+                payload.getString("sub").toString(),
                 completeDateOfDeparture,
                 "2025-05-29T10:00",
                 tripCostTolls.text.toString(),
