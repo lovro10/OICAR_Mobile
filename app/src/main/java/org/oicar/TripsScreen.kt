@@ -29,18 +29,30 @@ import kotlinx.coroutines.withContext
 import org.oicar.models.DirectionResponse
 import org.oicar.models.Trip
 import org.oicar.services.ApiClient
+import org.oicar.services.GoogleApiService
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDateTime
 
 class TripsScreen : AppCompatActivity() {
 
+//    val retrofitGoogle = Retrofit.Builder()
+//        .baseUrl("https://maps.googleapis.com/maps/api/")
+//        .addConverterFactory(GsonConverterFactory.create())
+//        .build()
+//
+//    val apiService = retrofitGoogle.create((GoogleApiService::class.java))
+
     private lateinit var listOfTrips: List<Trip>
 
     private lateinit var googleMapsApiKey: String
+
+    private var approximateEta: String = "00.00"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,9 +107,12 @@ class TripsScreen : AppCompatActivity() {
                     for (trip in listOfTrips) {
 
                         lifecycleScope.launch {
-                            runAndWait(trip)
 
-                            val tripCard = createTripCard(trip)
+                            val directionData = getDirectionsDetails(trip)
+
+                            val eta = directionData?.routes?.firstOrNull()?.legs?.firstOrNull()?.duration?.text
+                            approximateEta = eta?.toString() ?: "N/A"
+                            val tripCard = createTripCard(trip, approximateEta)
                             val containerForTripCards = findViewById<LinearLayout>(R.id.layout_trips)
                             containerForTripCards.addView(tripCard)
                         }
@@ -116,12 +131,8 @@ class TripsScreen : AppCompatActivity() {
 
     }
 
-    var cardViews: MutableList<CardView> = mutableListOf()
-
-    var approximateDuration: String = "00000"
-
     @RequiresApi(Build.VERSION_CODES.O)
-    fun createTripCard(trip: Trip): CardView {
+    fun createTripCard(trip: Trip, eta: String): CardView {
 
         val context = this
 
@@ -197,8 +208,7 @@ class TripsScreen : AppCompatActivity() {
         })
 
         timeColumn.addView(TextView(context).apply {
-            text = "00:00"
-            tag = "durationText"
+            text = "~${convertToHourMinuteFormat(eta)}"
             setTypeface(null, Typeface.ITALIC)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             layoutParams = LinearLayout.LayoutParams(
@@ -209,7 +219,12 @@ class TripsScreen : AppCompatActivity() {
         })
 
         timeColumn.addView(TextView(context).apply {
-            text = "04:00"
+
+            val unformattedDateTime = trip.datumIVrijemePolaska
+            val extractedDateTime = LocalDateTime.parse(unformattedDateTime)
+            val formattedDateTime = extractedDateTime.toLocalTime()
+
+            text = addTimeStrings(formattedDateTime.toString(), convertToHourMinuteFormat(eta))
             setTypeface(null, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             layoutParams = LinearLayout.LayoutParams(
@@ -324,43 +339,54 @@ class TripsScreen : AppCompatActivity() {
         rootLayout.addView(driverRow)
         cardView.addView(rootLayout)
 
-        cardViews.add(cardView)
         return cardView
     }
 
-    suspend fun runAndWait(trip: Trip) {
+    suspend fun getDirectionsDetails(trip: Trip): DirectionResponse? {
 
-        withContext(Dispatchers.IO) {
-            getDirectionsDetails(trip)
+        return try {
+            val response = ApiClient.retrofitGoogle.getDirections(
+                trip.polaziste,
+                trip.odrediste,
+                googleMapsApiKey
+            )
+
+            if (response.isSuccessful) {
+                response.body()!!
+            } else {
+                Log.e("API", "Response failed: ${response.errorBody()?.string()}")
+                null
+            }
+
+        } catch (e: Exception) {
+            Log.e("API", "Network exception: ${e.message}")
+            null
         }
     }
 
-    var ests: MutableList<String> = mutableListOf<String>()
+    fun convertToHourMinuteFormat(input: String): String {
+        val hourRegex = Regex("(\\d+)\\s*hour")
+        val minuteRegex = Regex("(\\d+)\\s*min")
 
-    fun getDirectionsDetails(trip: Trip) {
+        val hours = hourRegex.find(input)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        val minutes = minuteRegex.find(input)?.groupValues?.get(1)?.toIntOrNull() ?: 0
 
-        ApiClient.retrofitGoogle.getDirections(trip.polaziste, trip.odrediste, googleMapsApiKey).enqueue(object : Callback<DirectionResponse> {
-            override fun onResponse(call: Call<DirectionResponse>, response: Response<DirectionResponse>) {
-                if (response.isSuccessful) {
+        return String.format("%02d:%02d", hours, minutes)
+    }
 
-                    val directions = response.body()!!
+    fun addTimeStrings(time1: String, time2: String): String {
+        fun toMinutes(time: String): Int {
+            val parts = time.split(":")
+            val hours = parts[0].toInt()
+            val minutes = parts[1].toInt()
+            return hours * 60 + minutes
+        }
 
-                    approximateDuration = directions.routes.first().legs.first().duration.text
+        val totalMinutes = toMinutes(time1) + toMinutes(time2)
+        val resultHours = totalMinutes / 60
+        val resultMinutes = totalMinutes % 60
 
-                    ests.add(approximateDuration)
-
-                    println(approximateDuration)
-
-                } else {
-                    println("FAIL")
-                    println(response)
-                }
-            }
-
-            override fun onFailure(call: Call<DirectionResponse>, t: Throwable) {
-                Log.e("API", "Network error: ${t.message}")
-            }
-        })
+        return String.format("%02d:%02d", resultHours, resultMinutes)
     }
 
 }

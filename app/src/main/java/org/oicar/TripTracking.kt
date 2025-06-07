@@ -2,12 +2,15 @@ package org.oicar
 
 import android.Manifest.permission
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.os.Looper
+import android.util.Base64
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
@@ -16,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import com.google.android.libraries.navigation.Waypoint
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.datatransport.BuildConfig
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -25,6 +29,13 @@ import com.google.android.libraries.navigation.NavigationView
 import com.google.android.libraries.navigation.Navigator
 import com.google.android.libraries.navigation.Navigator.RouteStatus
 import com.google.android.libraries.navigation.SimulationOptions
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.launch
+import org.json.JSONObject
+import org.oicar.models.DirectionResponse
+import org.oicar.models.Trip
+import org.oicar.services.ApiClient
 
 class TripTracking : AppCompatActivity() {
 
@@ -38,6 +49,14 @@ class TripTracking : AppCompatActivity() {
     var navigatorScope: org.oicar.InitializedNavScope? = null
     var pendingNavActions = mutableListOf<org.oicar.InitializedNavRunnable>()
 
+    private lateinit var googleMapsApiKey: String
+
+    private lateinit var currentUserRole: String
+
+    private lateinit var directionData: DirectionResponse
+
+    private lateinit var trip : Trip
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -49,13 +68,29 @@ class TripTracking : AppCompatActivity() {
             insets
         }
 
+        googleMapsApiKey = applicationContext.packageManager
+            .getApplicationInfo(applicationContext.packageName, PackageManager.GET_META_DATA)
+            .metaData
+            .getString("com.google.android.geo.API_KEY").toString()
+
+        val jwt = getJwtToken(this)
+        val payload = decodeJwtPayload(jwt!!)
+        currentUserRole = payload.getString("role").toString()
+
+        val receivedTripInfoJson = intent.getStringExtra("trip")
+        val type = object : TypeToken<Trip>() {}.type
+        trip = Gson().fromJson<Trip>(receivedTripInfoJson, type)
+
+        lifecycleScope.launch {
+
+            directionData = getDirectionsData()!!
+        }
+
         navView = findViewById(R.id.navigation_view)
         navView.onCreate(savedInstanceState)
 
         // Ensure the screen stays on during nav.
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-
-
 
         val permissions =
             if (VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
@@ -173,14 +208,16 @@ class TripTracking : AppCompatActivity() {
         val waypoint: Waypoint? =
             // Set a destination by using a Place ID (the recommended method)
             try {
-                Waypoint.builder().setPlaceIdString(placeId).build()
+                Waypoint.builder().setLatLng(directionData.routes.first().legs.first().end_location.lat.toDouble(), directionData.routes.first().legs.first().end_location.lng.toDouble()).build()
             } catch (e: Waypoint.UnsupportedPlaceIdException) {
                 return
             }
 
         val pendingRoute = mNavigator?.setDestination(waypoint)
 
-        mNavigator?.simulator?.setUserLocation(startLocation)
+        val departureLocation = LatLng(directionData.routes.first().legs.first().start_location.lat.toDouble(), directionData.routes.first().legs.first().start_location.lng.toDouble())
+
+        mNavigator?.simulator?.setUserLocation(departureLocation)
 
         // Set an action to perform when a route is determined to the destination
         pendingRoute?.setOnResultListener { code ->
@@ -263,6 +300,44 @@ class TripTracking : AppCompatActivity() {
             navigator.cleanup()
         }
         super.onDestroy()
+    }
+
+    fun getJwtToken(context: Context): String? {
+        val securePrefs = getSecurePrefs(context)
+        return securePrefs.getString("jwt_token", null)
+    }
+
+    fun decodeJwtPayload(jwt: String): JSONObject {
+        val parts = jwt.split(".")
+        if (parts.size != 3) throw IllegalArgumentException("Invalid JWT format")
+
+        val payloadEncoded = parts[1]
+        val decodedBytes = Base64.decode(payloadEncoded, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        val decodedPayload = String(decodedBytes, Charsets.UTF_8)
+
+        return JSONObject(decodedPayload)
+    }
+
+    suspend fun getDirectionsData(): DirectionResponse? {
+        return try {
+            val response = ApiClient.retrofitGoogle.getDirections(
+                trip.polaziste,
+                trip.odrediste,
+                googleMapsApiKey
+            )
+
+            if (response.isSuccessful) {
+
+                response.body()!!
+            } else {
+                Log.e("API", "Response failed: ${response.errorBody()?.string()}")
+                null
+            }
+
+        } catch (e: Exception) {
+            Log.e("API", "Network exception: ${e.message}")
+            null
+        }
     }
 }
 

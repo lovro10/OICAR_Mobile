@@ -12,7 +12,7 @@ data class Trip(
     val gorivo: Double,
     val cijenaPoPutniku: Double,
     val brojPutnika: Int,
-    val statusVoznjeNaziv: String,
+    val statusVoznjeNaziv: String?,
     val polaziste: String,
     val odrediste: String,
     val ime: String,

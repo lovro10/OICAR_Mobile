@@ -62,7 +62,7 @@ class AddTrip : AppCompatActivity(), AdapterView.OnItemSelectedListener {
 
         val payload = decodeJwtPayload(jwt!!)
 
-        ApiClient.retrofit.getAllVehiclesForCurrentDriver( payload.getString("sub").toInt()).enqueue(object : Callback<MutableList<Vehicle>> {
+        ApiClient.retrofit.getAllVehiclesForCurrentDriver(payload.getString("sub").toInt()).enqueue(object : Callback<MutableList<Vehicle>> {
             override fun onResponse(call: Call<MutableList<Vehicle>>, response: Response<MutableList<Vehicle>>) {
                 if (response.isSuccessful) {
 

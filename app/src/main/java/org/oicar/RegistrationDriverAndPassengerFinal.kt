@@ -55,7 +55,7 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
     private val cameraPermission = android.Manifest.permission.CAMERA
     private val requestCode = 1001
 
-    private lateinit var registeredUserId : String
+    private var registeredUserId : String = ""
     private lateinit var createdImages : MutableList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -99,8 +99,13 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                     if (response.isSuccessful) {
 
                         println("Success")
+
                         registeredUserId = response.body()!!
 
+                        if (createdImages.count() == 5) {
+
+                            callCreateKorisnikImage()
+                        }
 
                     } else {
                         println("FAIL")
@@ -125,7 +130,7 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                         println("Success")
                         TempDataHolder.jsonForHttpRequest = null
 
-                        if (createdImages.count() == 5) {
+                        if (createdImages.count() == 5 && registeredUserId != "") {
 
                             callCreateKorisnikImage()
                         }
@@ -151,7 +156,7 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                         println("Success")
                         TempDataHolder.jsonForHttpRequest = null
 
-                        if (createdImages.count() == 5) {
+                        if (createdImages.count() == 5 && registeredUserId != "") {
 
                             callCreateKorisnikImage()
                         }
@@ -177,7 +182,7 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                         println("Success")
                         TempDataHolder.jsonForHttpRequest = null
 
-                        if (createdImages.count() == 5) {
+                        if (createdImages.count() == 5 && registeredUserId != "") {
 
                             callCreateKorisnikImage()
                         }
@@ -204,7 +209,7 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                         println("Success")
                         TempDataHolder.jsonForHttpRequest = null
 
-                        if (createdImages.count() == 5) {
+                        if (createdImages.count() == 5 && registeredUserId != "") {
 
                             callCreateKorisnikImage()
                         }
@@ -231,7 +236,7 @@ class RegistrationDriverAndPassengerFinal : AppCompatActivity() {
                         println("Success")
                         TempDataHolder.jsonForHttpRequest = null
 
-                        if (createdImages.count() == 5) {
+                        if (createdImages.count() == 5 && registeredUserId != "") {
 
                             callCreateKorisnikImage()
                         }
