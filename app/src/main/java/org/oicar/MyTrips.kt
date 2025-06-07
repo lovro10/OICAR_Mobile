@@ -2,6 +2,7 @@ package org.oicar
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Typeface
 import android.os.Build
@@ -22,19 +23,30 @@ import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.internal.TextScale
+import com.google.gson.Gson
+import kotlinx.coroutines.launch
 import org.json.JSONObject
+import org.oicar.TripsScreen
+import org.oicar.models.DirectionResponse
 import org.oicar.models.Trip
 import org.oicar.services.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.LocalDateTime
 
 class MyTrips : AppCompatActivity() {
 
     private lateinit var listOfTrips: List<Trip>
+
+    private lateinit var googleMapsApiKey: String
+
+    private var approximateEta: String = "00.00"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +57,11 @@ class MyTrips : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        googleMapsApiKey = applicationContext.packageManager
+            .getApplicationInfo(applicationContext.packageName, PackageManager.GET_META_DATA)
+            .metaData
+            .getString("com.google.android.geo.API_KEY").toString()
 
         val bottomNavigation = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNavigation.selectedItemId = R.id.nav_add_drive
@@ -85,9 +102,16 @@ class MyTrips : AppCompatActivity() {
 
                     for (trip in listOfTrips) {
 
-                        val tripCard = createTripCard(trip)
-                        val containerForTripCards = findViewById<LinearLayout>(R.id.layout_my_trips)
-                        containerForTripCards.addView(tripCard)
+                        lifecycleScope.launch {
+
+                            val directionData = getDirectionsDetails(trip)
+
+                            val eta = directionData?.routes?.firstOrNull()?.legs?.firstOrNull()?.duration?.text
+                            approximateEta = eta?.toString() ?: "N/A"
+                            val tripCard = createTripCard(trip, approximateEta)
+                            val containerForTripCards = findViewById<LinearLayout>(R.id.layout_trips)
+                            containerForTripCards.addView(tripCard)
+                        }
                     }
 
 
@@ -112,7 +136,8 @@ class MyTrips : AppCompatActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun createTripCard(trip: Trip): CardView {
+    fun createTripCard(trip: Trip, eta: String): CardView {
+
         val context = this
 
         val cardView = CardView(context).apply {
@@ -129,8 +154,10 @@ class MyTrips : AppCompatActivity() {
             isFocusable = true
 
             setOnClickListener {
-                println("Clicked!")
-                println(trip)
+
+                val intent = Intent(this@MyTrips, TripDetails::class.java)
+                intent.putExtra("trip", Gson().toJson(trip))
+                startActivity(intent)
             }
         }
 
@@ -185,7 +212,7 @@ class MyTrips : AppCompatActivity() {
         })
 
         timeColumn.addView(TextView(context).apply {
-            text = "~04:00"
+            text = "~${convertToHourMinuteFormat(eta)}"
             setTypeface(null, Typeface.ITALIC)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             layoutParams = LinearLayout.LayoutParams(
@@ -196,7 +223,12 @@ class MyTrips : AppCompatActivity() {
         })
 
         timeColumn.addView(TextView(context).apply {
-            text = "04:00"
+
+            val unformattedDateTime = trip.datumIVrijemePolaska
+            val extractedDateTime = LocalDateTime.parse(unformattedDateTime)
+            val formattedDateTime = extractedDateTime.toLocalTime()
+
+            text = addTimeStrings(formattedDateTime.toString(), convertToHourMinuteFormat(eta))
             setTypeface(null, Typeface.BOLD)
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
             layoutParams = LinearLayout.LayoutParams(
@@ -259,7 +291,7 @@ class MyTrips : AppCompatActivity() {
         })
 
         val priceText = TextView(context).apply {
-            text = trip.cijenaPoPutniku.toString()
+            text = BigDecimal(trip.cijenaPoPutniku).setScale(2, RoundingMode.HALF_UP).toString()
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
             setTypeface(null, Typeface.BOLD)
             gravity = Gravity.CENTER_VERTICAL
@@ -280,14 +312,6 @@ class MyTrips : AppCompatActivity() {
             gravity = Gravity.CENTER_VERTICAL
             setPadding(0, 8, 0, 0)
         }
-
-//        val profileImage = ImageView(context).apply {
-//            layoutParams = LinearLayout.LayoutParams(40.dpToPx(), 40.dpToPx()).apply {
-//                marginEnd = 8.dpToPx()
-//            }
-//            scaleType = ImageView.ScaleType.CENTER_CROP
-//            setImageResource(R.drawable.profile_placeholder) // Your placeholder
-//        }
 
         val driverInfo = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
@@ -313,7 +337,6 @@ class MyTrips : AppCompatActivity() {
             layoutParams = LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT)
         })
 
-//        driverRow.addView(profileImage)
         driverRow.addView(driverInfo)
 
         rootLayout.addView(topRow)
@@ -337,5 +360,52 @@ class MyTrips : AppCompatActivity() {
         val decodedPayload = String(decodedBytes, Charsets.UTF_8)
 
         return JSONObject(decodedPayload)
+    }
+
+    suspend fun getDirectionsDetails(trip: Trip): DirectionResponse? {
+
+        return try {
+            val response = ApiClient.retrofitGoogle.getDirections(
+                trip.polaziste,
+                trip.odrediste,
+                googleMapsApiKey
+            )
+
+            if (response.isSuccessful) {
+                response.body()!!
+            } else {
+                Log.e("API", "Response failed: ${response.errorBody()?.string()}")
+                null
+            }
+
+        } catch (e: Exception) {
+            Log.e("API", "Network exception: ${e.message}")
+            null
+        }
+    }
+
+    fun convertToHourMinuteFormat(input: String): String {
+        val hourRegex = Regex("(\\d+)\\s*hour")
+        val minuteRegex = Regex("(\\d+)\\s*min")
+
+        val hours = hourRegex.find(input)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+        val minutes = minuteRegex.find(input)?.groupValues?.get(1)?.toIntOrNull() ?: 0
+
+        return String.format("%02d:%02d", hours, minutes)
+    }
+
+    fun addTimeStrings(time1: String, time2: String): String {
+        fun toMinutes(time: String): Int {
+            val parts = time.split(":")
+            val hours = parts[0].toInt()
+            val minutes = parts[1].toInt()
+            return hours * 60 + minutes
+        }
+
+        val totalMinutes = toMinutes(time1) + toMinutes(time2)
+        val resultHours = totalMinutes / 60
+        val resultMinutes = totalMinutes % 60
+
+        return String.format("%02d:%02d", resultHours, resultMinutes)
     }
 }

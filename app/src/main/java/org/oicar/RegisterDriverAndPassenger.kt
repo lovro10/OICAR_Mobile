@@ -52,7 +52,7 @@ class RegisterDriverAndPassenger : AppCompatActivity() {
                     else {
                         monthFormatted = (selectedMonth + 1).toString()
                     }
-                    if(selectedDay + 1 < 10) {
+                    if(selectedDay + 1 <= 10) {
                         dayFormatted = "0${(selectedDay).toString()}"
                     }
                     else {

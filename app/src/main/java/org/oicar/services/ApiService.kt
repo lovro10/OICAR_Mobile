@@ -3,17 +3,18 @@ package org.oicar.services
 import okhttp3.ResponseBody
 import org.oicar.models.DirectionResponse
 import org.oicar.models.ImageDocument
+import org.oicar.models.JoinRide
 import org.oicar.models.KorisnikImage
 import org.oicar.models.OglasVoznja
-import org.oicar.models.RegisterRequest
 import org.oicar.models.Trip
 import org.oicar.models.Vehicle
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.Response
 
 interface ApiService {
     @POST("api/Korisnik/Login")
@@ -45,13 +46,26 @@ interface ApiService {
 
     @GET("api/OglasVoznja/GetAllByUser")
     fun getAllTripsForCurrentUser(@Query("userid") userid: Int): Call<List<Trip>>
+
+    @POST("api/KorisnikVoznja/JoinRide")
+    fun joinTrip(@Body request: JoinRide): Call<ResponseBody>
+
+    @GET("api/KorisnikVoznja/UserJoinedRide")
+    fun checkIfUserAlreadyAppliedForTrip(
+        @Query("userId") userid: Int,
+        @Query("oglasVoznjaId") oglasVoznjaId: Int): Call<Boolean>
+
+    @DELETE("api/KorisnikVoznja/DeleteKorisnikVoznja")
+    fun deleteUserTripApplication(
+        @Query("userId") userid: Int,
+        @Query("oglasVoznjaId") oglasVoznjaId: Int): Call<ResponseBody>
 }
 
 interface GoogleApiService {
     @GET("directions/json")
-    fun getDirections(
+    suspend fun getDirections(
         @Query("origin") origin: String,
         @Query("destination") destination: String,
         @Query("key") apiKey: String
-    ): Call<DirectionResponse>
+    ): Response<DirectionResponse>
 }

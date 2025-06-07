@@ -39,6 +39,8 @@
             android:gravity="center"
             android:layout_marginTop="20dp">
 
+
+
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
@@ -46,21 +48,21 @@
                 android:paddingRight="40dp"
                 android:drawableRight="@drawable/icon_location_pin"
                 android:drawableTint="@color/black"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                />
 
             <TextView
                 android:id="@+id/tripDuration"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
                 android:layout_weight="1"
                 android:gravity="center"
+                android:elevation="10dp"
 
                 android:text="02:15"
                 android:textColor="#FFFFFF"
-                android:textStyle="bold"
                 android:textSize="25sp"
-                />
+                android:textStyle="bold" />
 
             <TextView
                 android:layout_width="0dp"
@@ -280,7 +282,7 @@
         android:paddingHorizontal="16dp">
 
         <Button
-            android:id="@+id/btnCancelAddVehicle"
+            android:id="@+id/btnApplyForTrip"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
