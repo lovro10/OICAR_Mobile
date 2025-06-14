@@ -74,15 +74,18 @@ class MyTrips : AppCompatActivity() {
                 }
                 R.id.nav_add_drive -> {
 
-
+                    val intent = Intent(this, MyTrips::class.java)
+                    startActivity(intent)
                 }
                 R.id.nav_messages -> {
 
-
+                    val intent = Intent(this, AddVehicleScreen::class.java)
+                    startActivity(intent)
                 }
                 R.id.nav_profile -> {
 
-
+                    val intent = Intent(this, MyProfile::class.java)
+                    startActivity(intent)
                 }
             }
             true
@@ -100,17 +103,20 @@ class MyTrips : AppCompatActivity() {
                     listOfTrips = response.body()!!
                     println(response.body())
 
-                    for (trip in listOfTrips) {
+                    if (listOfTrips.isNotEmpty()) {
 
-                        lifecycleScope.launch {
+                        for (trip in listOfTrips) {
 
-                            val directionData = getDirectionsDetails(trip)
+                            lifecycleScope.launch {
 
-                            val eta = directionData?.routes?.firstOrNull()?.legs?.firstOrNull()?.duration?.text
-                            approximateEta = eta?.toString() ?: "N/A"
-                            val tripCard = createTripCard(trip, approximateEta)
-                            val containerForTripCards = findViewById<LinearLayout>(R.id.layout_trips)
-                            containerForTripCards.addView(tripCard)
+                                val directionData = getDirectionsDetails(trip)
+
+                                val eta = directionData?.routes?.firstOrNull()?.legs?.firstOrNull()?.duration?.text
+                                approximateEta = eta?.toString() ?: "00:00"
+                                val tripCard = createTripCard(trip, approximateEta)
+                                val containerForTripCards = findViewById<LinearLayout>(R.id.layout_my_trips)
+                                containerForTripCards.addView(tripCard)
+                            }
                         }
                     }
 

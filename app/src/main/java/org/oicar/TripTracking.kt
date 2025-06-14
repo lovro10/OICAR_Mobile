@@ -12,6 +12,7 @@ import android.os.Looper
 import android.util.Base64
 import android.util.Log
 import android.view.WindowManager
+import android.widget.Button
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions
 import androidx.appcompat.app.AppCompatActivity
@@ -80,6 +81,13 @@ class TripTracking : AppCompatActivity() {
         val receivedTripInfoJson = intent.getStringExtra("trip")
         val type = object : TypeToken<Trip>() {}.type
         trip = Gson().fromJson<Trip>(receivedTripInfoJson, type)
+
+        val btnEndTrip = findViewById<Button>(R.id.btnEndTrip)
+
+        btnEndTrip.setOnClickListener {
+
+            finish()
+        }
 
         lifecycleScope.launch {
 
@@ -236,7 +244,7 @@ class TripTracking : AppCompatActivity() {
                 RouteStatus.ROUTE_CANCELED -> println("Route guidance canceled.")
                 RouteStatus.NO_ROUTE_FOUND,
                 RouteStatus.NETWORK_ERROR ->
-                    // TODO: Add logic to handle when a route could not be determined
+
                     println("Error starting guidance: $code")
 
                 else -> println("Error starting guidance: $code")

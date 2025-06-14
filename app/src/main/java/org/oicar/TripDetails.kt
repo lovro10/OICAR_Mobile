@@ -89,7 +89,11 @@ class TripDetails : AppCompatActivity() {
         val type = object : TypeToken<Trip>() {}.type
         trip = Gson().fromJson<Trip>(receivedTripInfoJson, type)
 
+        val btnBackTrip = findViewById<Button>(R.id.btnBackTrip)
+        btnBackTrip.setOnClickListener {
 
+            finish()
+        }
 
         val jwt = getJwtToken(this)
         val payload = decodeJwtPayload(jwt!!)
@@ -205,7 +209,32 @@ class TripDetails : AppCompatActivity() {
                     }
                 })
             }
-            else if (isAlreadyApplied == false && currentUserRole != "DRIVER") {
+            else if (isAlreadyApplied == false && currentUserRole == "DRIVER") {
+
+                ApiClient.retrofit.deleteUserTripApplication(joinRideData.korisnikId.toInt(), joinRideData.oglasVoznjaId.toInt()).enqueue(object : Callback<ResponseBody> {
+                    override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {
+                        if (response.isSuccessful) {
+
+                            println("SUCCESS")
+                            println(response)
+
+                            btnApplyForTrip.text = "apply"
+                            btnApplyForTrip.setTextColor(Color.parseColor("#008000"))
+
+                            isAlreadyApplied = false
+
+                        } else {
+                            println("FAIL")
+                            println(response)
+                        }
+                    }
+
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
+                        Log.e("API", "Network error: ${t.message}")
+                    }
+                })
+            }
+            else if (isAlreadyApplied == true && currentUserRole != "DRIVER" && btnApplyForTrip.text == "cancel application") {
 
                 ApiClient.retrofit.deleteUserTripApplication(joinRideData.korisnikId.toInt(), joinRideData.oglasVoznjaId.toInt()).enqueue(object : Callback<ResponseBody> {
                     override fun onResponse(call: Call<ResponseBody>, response: Response<ResponseBody>) {

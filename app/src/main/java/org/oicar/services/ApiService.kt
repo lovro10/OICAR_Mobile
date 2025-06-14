@@ -4,6 +4,7 @@ import okhttp3.ResponseBody
 import org.oicar.models.DirectionResponse
 import org.oicar.models.ImageDocument
 import org.oicar.models.JoinRide
+import org.oicar.models.KorisnikDetails
 import org.oicar.models.KorisnikImage
 import org.oicar.models.OglasVoznja
 import org.oicar.models.Trip
@@ -15,6 +16,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 import retrofit2.Response
+import retrofit2.http.PUT
 
 interface ApiService {
     @POST("api/Korisnik/Login")
@@ -25,6 +27,9 @@ interface ApiService {
 
     @POST("api/Image")
     fun uploadImage(@Body request: ImageDocument): Call<String>
+
+    @GET("api/Korisnik/Profile")
+    fun getCurrentUserDetails(@Query("id") id: Int): Call<KorisnikDetails>
 
     @GET("api/CitySearch")
     fun getAllCities(): Call<MutableList<String>>
@@ -59,6 +64,11 @@ interface ApiService {
     fun deleteUserTripApplication(
         @Query("userId") userid: Int,
         @Query("oglasVoznjaId") oglasVoznjaId: Int): Call<ResponseBody>
+
+    @PUT("api/Korisnik/RequestClearInfo")
+    fun sendRequestForDataDeletion(
+        @Query("id") userid: Int
+    ): Call<ResponseBody>
 }
 
 interface GoogleApiService {

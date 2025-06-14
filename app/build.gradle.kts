@@ -82,7 +82,20 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
+    testImplementation ("junit:junit:4.13.2")
+
+    androidTestImplementation ("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation ("androidx.test.espresso:espresso-core:3.5.1")
+    androidTestImplementation ("com.squareup.okhttp3:mockwebserver:4.9.3")
+
+    androidTestImplementation ("androidx.test:runner:1.5.2")
+    androidTestImplementation ("androidx.test:rules:1.5.0")
+
+    testImplementation ("org.assertj:assertj-core:3.24.2")
+    testImplementation ("com.google.truth:truth:1.1.3")
+
     api("com.google.android.libraries.navigation:navigation:${navSdkVersion}")
+    testImplementation(kotlin("test"))
 }
 
 secrets {

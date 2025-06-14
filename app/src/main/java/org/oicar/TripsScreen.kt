@@ -1,5 +1,6 @@
 package org.oicar
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Resources
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -41,19 +43,13 @@ import java.time.LocalDateTime
 
 class TripsScreen : AppCompatActivity() {
 
-//    val retrofitGoogle = Retrofit.Builder()
-//        .baseUrl("https://maps.googleapis.com/maps/api/")
-//        .addConverterFactory(GsonConverterFactory.create())
-//        .build()
-//
-//    val apiService = retrofitGoogle.create((GoogleApiService::class.java))
-
     private lateinit var listOfTrips: List<Trip>
 
     private lateinit var googleMapsApiKey: String
 
     private var approximateEta: String = "00.00"
 
+    @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -90,7 +86,8 @@ class TripsScreen : AppCompatActivity() {
                 }
                 R.id.nav_profile -> {
 
-
+                    val intent = Intent(this, MyProfile::class.java)
+                    startActivity(intent)
                 }
             }
             true
@@ -130,6 +127,8 @@ class TripsScreen : AppCompatActivity() {
         })
 
     }
+
+    var counter = 0
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun createTripCard(trip: Trip, eta: String): CardView {
@@ -260,7 +259,9 @@ class TripsScreen : AppCompatActivity() {
         }
 
         locationColumn.addView(TextView(context).apply {
+
             text = trip.polaziste
+            tag = "polaziste${counter++}"
             setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             setTypeface(null, Typeface.BOLD)
             layoutParams = LinearLayout.LayoutParams(
@@ -302,7 +303,6 @@ class TripsScreen : AppCompatActivity() {
         topRow.addView(leftLayout)
         topRow.addView(priceText)
 
-        // Driver info row
         val driverRow = LinearLayout(context).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL

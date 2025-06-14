@@ -3,7 +3,9 @@ package org.oicar
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -13,13 +15,17 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.google.gson.Gson
 import okhttp3.ResponseBody
+import org.json.JSONObject
+import org.oicar.models.KorisnikDetails
 import org.oicar.services.ApiClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
 fun getSecurePrefs(context: Context): EncryptedSharedPreferences {
+
     val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
 
     return EncryptedSharedPreferences.create(
@@ -32,6 +38,9 @@ fun getSecurePrefs(context: Context): EncryptedSharedPreferences {
 }
 
 class MainActivity : AppCompatActivity() {
+
+    private var currentUserId: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -68,15 +77,43 @@ class MainActivity : AppCompatActivity() {
 
                         saveJwtToken(this@MainActivity, response.body().toString())
 
-                        println("Success")
+                        val jwt = response.body().toString()
+                        val payload = decodeJwtPayload(jwt)
+                        currentUserId = payload.getString("sub").toInt()
 
-                        val intent = Intent(this@MainActivity, BrowseScreen::class.java)
-                        startActivity(intent)
+                        ApiClient.retrofit.getCurrentUserDetails(currentUserId).enqueue(object : Callback<KorisnikDetails> {
+                            override fun onResponse(call: Call<KorisnikDetails>, response: Response<KorisnikDetails>) {
+                                if (response.isSuccessful) {
 
+                                    val userDetails = response.body()
+
+                                    if (userDetails?.isconfirmed == true) {
+
+                                        val intent = Intent(this@MainActivity, BrowseScreen::class.java)
+                                        startActivity(intent)
+                                    }
+                                    else {
+
+                                        val intent = Intent(this@MainActivity, RegisterPendingScreen::class.java)
+                                        startActivity(intent)
+                                    }
+
+                                } else {
+                                    println("FAIL")
+                                    println(response)
+                                }
+                            }
+
+                            override fun onFailure(call: Call<KorisnikDetails>, t: Throwable) {
+                                Log.e("API", "Network error: ${t.message}")
+                            }
+                        })
 
                     } else {
-                        println("FAIL")
-                        println(response)
+
+                        val errorMessageIncPassUser = findViewById<TextView>(R.id.errorMessageIncPassUser)
+
+                        errorMessageIncPassUser.visibility = View.VISIBLE
                     }
                 }
 
@@ -90,6 +127,17 @@ class MainActivity : AppCompatActivity() {
     fun saveJwtToken(context: Context, token: String) {
         val securePrefs = getSecurePrefs(context)
         securePrefs.edit().putString("jwt_token", token).apply()
+    }
+
+    fun decodeJwtPayload(jwt: String): JSONObject {
+        val parts = jwt.split(".")
+        if (parts.size != 3) throw IllegalArgumentException("Invalid JWT format")
+
+        val payloadEncoded = parts[1]
+        val decodedBytes = Base64.decode(payloadEncoded, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)
+        val decodedPayload = String(decodedBytes, Charsets.UTF_8)
+
+        return JSONObject(decodedPayload)
     }
 }
 

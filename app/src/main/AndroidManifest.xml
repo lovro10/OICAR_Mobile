@@ -29,6 +29,15 @@
         android:theme="@style/Theme.OICAR"
         tools:targetApi="31">
         <activity
+            android:name=".RequestForClearingDataScreen"
+            android:exported="false" />
+        <activity
+            android:name=".MyProfile"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterPendingScreen"
+            android:exported="false" />
+        <activity
             android:name=".TripTracking"
             android:exported="false" />
         <activity
