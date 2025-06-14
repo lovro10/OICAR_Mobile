@@ -59,7 +59,8 @@ class BrowseScreen : AppCompatActivity() {
                 }
                 R.id.nav_profile -> {
 
-
+                    val intent = Intent(this, MyProfile::class.java)
+                    startActivity(intent)
                 }
             }
             true
